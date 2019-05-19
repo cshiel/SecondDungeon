@@ -11,22 +11,90 @@ using RogueSharp.DiceNotation;
 
 namespace SecondDungeon.Source
 {
+	public class MagicAttack
+	{
+		private Figure _caster;
+		private Texture2D _fire;
+		private float _radius = 0;
+		private bool _done = false;
+		private int _damage;
+		private float _speed;
+		private int _range;
+
+		public MagicAttack(Figure caster, int textureID, int damage, int range = 6, float speed = 0.25f)
+		{
+			_caster = caster;
+			TileHelper.GetTileTexture(textureID, ref _fire);
+			_damage = damage;
+			_speed = speed;
+			_range = range;
+		}
+
+		public void Draw(SpriteBatch spriteBatch, Figure figure)
+		{
+			if (_done)
+				return;
+
+			var level = LevelManager.GetCurrentLevel();
+			var map = level.Map;
+			int x = figure.X;
+			int y = figure.Y;
+			bool casterIsPlayer = (x == Global.Player.X && y == Global.Player.Y);
+			//var cells = map.GetCellsInCircle(x, y, (int)_radius);
+			var cells = map.GetBorderCellsInCircle(x, y, (int)_radius);
+			foreach (var cell in cells)
+			{
+				if (cell.IsWalkable)
+				{
+					spriteBatch.Draw(_fire, new Vector2(cell.X * Global.SpriteWidth, cell.Y * Global.SpriteHeight), null, null, null, 0.0f, Vector2.One, Color.White, SpriteEffects.None, LayerDepth.Figures);
+					// if caster is player
+					if (casterIsPlayer)
+					{
+						var npc = level.NpcAt(cell.X, cell.Y);
+						if (npc != null)
+						{
+							Global.CombatManager.Attack(_caster, npc);
+						}
+					}
+					else
+					{
+						// if caster is not player
+						if (cell.X == Global.Player.X && cell.Y == Global.Player.Y)
+						{
+							Global.CombatManager.Attack(_caster, Global.Player);
+						}
+					}
+
+				}
+			}
+			_radius += _speed;
+			if (_radius >= _range)
+			{
+				_radius = 0;
+				_done = true;
+			}
+		}
+	}
+
 	public class CombatManager
 	{
 		private readonly Player _player;
-		private readonly List<Npc> _aggressiveEnemies;
-		
-		private List<HitInfo> _hitInfo = new List<HitInfo>();
+		private readonly List<Npc> _enemies;
 
-		public CombatManager(Player player, List<Npc> aggressiveEnemies)
+		//private List<HitInfo> _hitInfo = new List<HitInfo>();
+		private Dictionary<string, HitInfo> _hitInfo = new Dictionary<string, HitInfo>();
+
+		public CombatManager(Player player, List<Npc> enemies)
 		{
 			_player = player;
-			_aggressiveEnemies = aggressiveEnemies;
+			_enemies = enemies;
 		}
 
 		public void Attack(Figure attacker, Figure defender)
 		{
 			string info = " *MISS* ";
+
+			//SoundPlayer.PlaySound(Sound.MeleeAttack);
 
 			if (Dice.Roll("d20") + attacker.Info.AttackBonus >= defender.Info.ArmorClass)
 			{
@@ -40,8 +108,10 @@ namespace SecondDungeon.Source
 					if (defender is Npc)
 					{
 						var enemy = defender as Npc;
-						_aggressiveEnemies.Remove(enemy);
+						enemy.Alive = false;
+						_enemies.Remove(enemy);
 						info = " *DEAD* ";
+
 					}
 					Debug.WriteLine("{0} killed {1}", attacker.Info.Name, defender.Info.Name);
 				}
@@ -54,6 +124,7 @@ namespace SecondDungeon.Source
 			// draw effect
 			HitInfo hitInfo = new HitInfo();
 			hitInfo._info = info;
+			hitInfo._key = attacker.Info.Name;
 			if (attacker.Info.Name == Global.Player.Info.Name)
 			{
 				hitInfo._color = Color.Red;
@@ -63,25 +134,43 @@ namespace SecondDungeon.Source
 				hitInfo._color = Color.Green;
 			}
 
-			hitInfo._position = new Vector2(attacker.X * Global.SpriteWidth, attacker.Y * Global.SpriteHeight);
-			_hitInfo.Add(hitInfo);
+			hitInfo._position = new Vector2(defender.X * Global.SpriteWidth, defender.Y * Global.SpriteHeight);
+			if (_hitInfo.ContainsKey(attacker.Info.Name) == false)
+			{
+				_hitInfo.Add(attacker.Info.Name, hitInfo);
+			}
 		}
 
 		public void Draw(SpriteBatch spriteBatch, SpriteFont font)
 		{
-			for (int i = 0; i < _hitInfo.Count; i++)
+			//for (int i = 0; i < _hitInfo.Count; i++)
+			var hiLookupCopy = _hitInfo.Values.ToList<HitInfo>();
+			foreach (var hi in hiLookupCopy)
 			{
-				spriteBatch.DrawString(font, _hitInfo[i]._info, _hitInfo[i]._position, _hitInfo[i]._color);
-				_hitInfo[i]._position.Y -= 1;
-				_hitInfo[i]._TTL--;
+				//spriteBatch.DrawString(font, _hitInfo[i]._info, _hitInfo[i]._position, _hitInfo[i]._color);
+				//_hitInfo[i]._position.Y -= 1;
+				//_hitInfo[i]._TTL--;
+				spriteBatch.DrawString(font, hi._info, hi._position, hi._color);
+				var hiCopy = hi;
+				hiCopy._position.Y -= 1;
+				hiCopy._TTL--;
+				_hitInfo[hi._key] = hiCopy;
 			}
-			for (int i = _hitInfo.Count-1; i >= 0; i--)
+			
+			foreach (var hi in hiLookupCopy)
 			{
-				if (_hitInfo[i]._TTL <= 0)
+				if (hi._TTL <= 0)
 				{
-					_hitInfo.RemoveAt(i);
+					_hitInfo.Remove(hi._key);
 				}
 			}
+			//for (int i = _hitInfo.Count-1; i >= 0; i--)
+			//{
+				//if (_hitInfo[i]._TTL <= 0)
+				//{
+				//	_hitInfo.RemoveAt(i);
+				//}
+			//}
 		}
 
 		public Figure FigureAt(int x, int y)
@@ -101,7 +190,7 @@ namespace SecondDungeon.Source
 
 		public Npc EnemyAt(int x, int y)
 		{
-			foreach (var enemy in _aggressiveEnemies)
+			foreach (var enemy in _enemies)
 			{
 				if (enemy.X == x && enemy.Y == y)
 				{

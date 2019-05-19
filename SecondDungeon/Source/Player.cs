@@ -12,6 +12,7 @@ namespace SecondDungeon.Source
 {
 	public class HitInfo
 	{
+		public string _key;
 		public string _info;
 		public Vector2 _position;
 		public int _TTL = 80;
@@ -32,6 +33,8 @@ namespace SecondDungeon.Source
 
 	public class Player : Figure
 	{
+		private MagicAttack _fireAttack;
+
 		private List<HitInfo> _hitInfo = new List<HitInfo>();
 		public PlayerStats PlayerStats { get; set; }
 
@@ -43,7 +46,7 @@ namespace SecondDungeon.Source
 			Global.Player = this;
 			Info = new FigureInfo();
 			PlayerStats = new PlayerStats();
-			
+
 		}
 
 		//public void RemoveItem(string itemName, int count = 1)
@@ -129,11 +132,15 @@ namespace SecondDungeon.Source
 			}
 
 			spriteBatch.Draw(Sprite, new Vector2(X * Sprite.Width, Y * Sprite.Height), null, null, null, 0.0f, Vector2.One, Color.White, SpriteEffects.None, LayerDepth.Figures);
+
+			if (_fireAttack != null)
+				_fireAttack.Draw(spriteBatch, this);
 		}
 
 		public bool HandleInput(InputState inputState, Level level)
 		{
 			UI ui = UIState.GetUI();
+
 			if (inputState.IsLeft(PlayerIndex.One))
 			{
 				int tempX = X - 1;
@@ -253,6 +260,12 @@ namespace SecondDungeon.Source
 						}
 					}
 				}
+				return true;
+			}
+			else if (inputState.IsSpace(PlayerIndex.One))
+			{
+				_fireAttack = new MagicAttack(this, 4412, 2);
+				SoundPlayer.PlaySound(Sound.MagicAttack);
 				return true;
 			}
 			return false;

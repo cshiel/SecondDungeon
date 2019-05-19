@@ -49,13 +49,14 @@ namespace SecondDungeon.Source
 					new PathToPlayer(Global.Player, level.Map, tex);
 				pathFromAggressiveEnemy.CreateFrom(x, y);
 
-				npc = new Npc(level.Map, pathFromAggressiveEnemy)
+				npc = new Npc(level.Map, level, pathFromAggressiveEnemy)
 				{
 					X = x,
 					Y = y,
 					Sprite = UIState._selectedTexture,
 					Damage = Dice.Parse("d3"),
 				};
+				
 				npc.Info = info;
 
 				if (npc.Info.IsMerchant)

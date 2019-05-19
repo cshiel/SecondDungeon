@@ -254,6 +254,24 @@ namespace SecondDungeon.Source
 			return _npcs[x, y];
 		}
 
+		public void RemoveNpc(Npc npc)
+		{
+			var found = _npcs[npc.X, npc.Y];
+			if (found != null)
+			{
+				_npcs[npc.X, npc.Y] = null;
+			}
+		}
+
+		public void MoveNpc(Npc npc, int x, int y, int newX, int newY)
+		{
+			var obj = _npcs[x, y];
+			_npcs[x, y] = null;
+			_npcs[newX, newY] = npc;
+			npc.X = newX;
+			npc.Y = newY;
+		}
+
 		public void AddTile(Cell cell)
 		{
 			_map.SetCellProperties(cell.X, cell.Y, cell.IsTransparent, cell.IsWalkable, cell.IsExplored, cell.CellType);

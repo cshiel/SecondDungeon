@@ -16,6 +16,8 @@ namespace SecondDungeon.Source
 		Debugging = 4,
 		Editor = 5,
 		Quit = 6,
+		Paused = 7,
+		MainMenu = 8
 	}
 	public class Global
 	{

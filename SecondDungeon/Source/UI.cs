@@ -482,24 +482,32 @@ namespace SecondDungeon.Source
 				container.Visible = visible;
 			}
 
-			private void AddTask(Grid grid, string label, string value, int index)
+			private void DelTask(Grid grid, int index)
 			{
-				var txtBlock = new TextBlock
-				{
-					Text = label,
-					GridColumn = 0,
-					GridRow = index
+				//grid.Widgets
+			}
 
-				};
-				var txtBox = new TextField
+			private void AddTask(Grid grid, int index)
+			{
+				var scriptCB = new ComboBox
 				{
-					Text = value,
 					GridColumn = 1,
 					GridRow = index
 				};
-				fields.Add(txtBox);
-				grid.Widgets.Add(txtBlock);
-				grid.Widgets.Add(txtBox);
+				scriptCB.Items.Clear();
+				foreach (var script in Enum.GetNames(typeof(ScriptEvaluation)))
+				{
+					scriptCB.Items.Add(new ListItem(script.ToString()));
+				}
+
+				var scriptTxt = new TextField
+				{
+					Text = "0",
+					GridColumn = 2,
+					GridRow = index
+				};
+				grid.Widgets.Add(scriptCB);
+				grid.Widgets.Add(scriptTxt);
 			}
 
 			private void AddRow(Grid grid, string label, string value, int index)
@@ -537,20 +545,44 @@ namespace SecondDungeon.Source
 					container.RowsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
 				}
 				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
 
-				AddRow(container, "Quest Name", "", 0);
+				var namesCB = new ComboBox
+				{
+					GridColumn = 0,
+					GridRow = 0
+				};
+				namesCB.Items.Add(new ListItem("Main Quest"));
+				namesCB.Items.Add(new ListItem("Kill 10 rats for Oggo"));
+				container.Widgets.Add(namesCB);
+
+				AddRow(container, "Quest Name", "", 1);
 
 				var addBtn = new Button()
 				{
 					Text = "Add Task",
 					GridColumn = 0,
-					GridRow = 1
+					GridRow = 2
 				};
 				container.Widgets.Add(addBtn);
 
-				addBtn.PressedChanged += (a, b) =>
+				int index = 2;
+				addBtn.Click += (a, b) =>
 				{
-					AddTask(container, "Task", "New task", 0);
+					AddTask(container, index);
+					index++;
+				};
+
+				var delBtn = new Button
+				{
+					Text = "Delete Task",
+					GridColumn = 0,
+					GridRow = 3
+				};
+				container.Widgets.Add(delBtn);
+				delBtn.Click += (a, b) =>
+				{
+					DelTask(container, index);
 				};
 
 				var nextBtn = new Button()
@@ -588,21 +620,354 @@ namespace SecondDungeon.Source
 
 		public class DialogueEditorWindow
 		{
+			Grid container;
+			private List<TextField> fields;
+
+			public bool IsVisible()
+			{
+				return container.Visible;
+			}
+
+			public void Show(bool visible)
+			{
+				container.Visible = visible;
+			}
+
+			public DialogueEditorWindow(Grid parent, Level level)
+			{
+				container = new Grid
+				{
+					RowSpacing = 5,
+					ColumnSpacing = 5,
+					GridColumn = 2,
+					GridRow = 2
+				};
+				for (int i = 0; i < 12; i++)
+				{
+					container.RowsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				}
+				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+
+				var txt = new TextBlock
+				{
+					Text = "Dialogue Editor",
+					GridRow = 0
+				};
+
+				//var scrollPane = new ScrollPane
+				//{
+				//	GridRow = 1
+				//};
+
+				var listBox = new ComboBox
+				{
+					GridRow = 1
+				};
+
+				listBox.Items.Add(new ListItem("Shopkeeper"));
+				listBox.Items.Add(new ListItem("Villager1"));
+				listBox.Items.Add(new ListItem("Villager2"));
+				listBox.Items.Add(new ListItem("Villager3"));
+
+				var nameTxt = new TextField
+				{
+					GridRow = 1,
+					GridColumn = 1,
+					Text = "<Name>"
+				};
+
+				var addBtn = new Button
+				{
+					GridRow = 2,
+					GridColumn = 1,
+					Text = "New Dialogue"
+				};
+
+				var delBtn = new Button
+				{
+					GridRow = 2,
+					GridColumn = 2,
+					Text = "Delete Dialogue"
+				};
+				container.Widgets.Add(delBtn);
+
+				var saveBtn = new Button
+				{
+					GridRow = 2,
+					GridColumn = 3,
+					Text = "Save Dialogue"
+				};
+				container.Widgets.Add(saveBtn);
+
+				var rootBtn = new Button
+				{
+					GridRow = 3,
+					GridColumn = 1,
+					Text = "Goto Root"
+				};
+
+				addBtn.Click += (a, b) =>
+				{
+					listBox.Items.Add(new ListItem(nameTxt.Text));
+				};
+
+				var txtField = new TextField
+				{
+					GridRow = 4,
+					GridColumn = 1,
+					Text = "<Start Conversation>"
+				};
+				var scriptCB = new ComboBox
+				{
+					GridRow = 5,
+					GridColumn = 1
+				};
+				scriptCB.Items.Clear();
+				foreach (var script in Enum.GetNames(typeof(ScriptDescription)))
+				{
+					scriptCB.Items.Add(new ListItem(script.ToString()));
+				}
+				var scriptTxt = new TextField
+				{
+					GridRow = 5,
+					GridColumn = 2,
+					Text = "0",
+					Width = 200
+				};
+				var respBtn = new Button
+				{
+					GridRow = 6,
+					GridColumn = 1,
+					Text = "Add Speech"
+				};
+				var delSpeechBtn = new Button
+				{
+					GridRow = 6,
+					GridColumn = 2,
+					Text = "Delete Speech"
+				};
+				container.Widgets.Add(delSpeechBtn);
+
+				var speechTxt = new TextField
+				{
+					GridRow = 7,
+					GridColumn = 1,
+					Text = "<Speech>",
+					Width = 500,
+					Height = 110
+				};
+				speechTxt.ClipToBounds = true;
+				speechTxt.Multiline = true;
+				var sp = new ScrollPane
+				{
+					GridRow = 7,
+					GridColumn = 1
+				};
+				sp.Content = speechTxt;
+				container.Widgets.Add(sp);
+
+				int row = 8;
+				respBtn.Click += (a, b) =>
+				{
+					var radioBtn = new RadioButton
+					{
+						Text = speechTxt.Text,
+						GridRow = row,
+						GridColumn = 1
+					};
+					row++;
+					container.Widgets.Add(radioBtn);
+				};
+
+				container.Widgets.Add(rootBtn);
+				container.Widgets.Add(respBtn);
+
+				container.Widgets.Add(scriptTxt);
+				container.Widgets.Add(scriptCB);
+
+				container.Widgets.Add(txtField);
+
+				container.Widgets.Add(addBtn);
+				container.Widgets.Add(nameTxt);
+
+				container.Widgets.Add(listBox);
+				container.Widgets.Add(txt);
+
+				parent.Widgets.Add(container);
+			}
 		}
+		DialogueEditorWindow dialogueEditorWindow;
 		//
 
 		// GAME windows
 		public class JournalWindow
 		{
+			Grid grid;
+
+			public bool IsVisible()
+			{
+				return grid.Visible;
+			}
+
+			public void Show(bool visible)
+			{
+				if (grid.Visible == false && visible == true)
+				{
+					//Refresh(UIState._activeNpc);
+				}
+				grid.Visible = visible;
+			}
+
+			public JournalWindow(Grid parent)
+			{
+				grid = new Grid()
+				{
+					GridPositionX = 2,
+					GridPositionY = 2
+				};
+				parent.Widgets.Add(grid);
+			}
 		}
+		JournalWindow journalWindow;
 
 		public class WorldMapWindow
 		{
+			Grid grid;
+			public bool IsVisible()
+			{
+				return grid.Visible;
+			}
+
+			public void Show(bool visible)
+			{
+				if (grid.Visible == false && visible == true)
+				{
+				}
+				grid.Visible = visible;
+			}
+
+			public WorldMapWindow(Grid parent)
+			{
+				grid = new Grid()
+				{
+					GridPositionX = 2,
+					GridPositionY = 2
+				};
+				parent.Widgets.Add(grid);
+			}
 		}
+		WorldMapWindow worldMapWindow;
+
+		public class MainWindow
+		{
+			Grid container;
+
+			public bool IsVisible()
+			{
+				return container.Visible;
+			}
+
+			public void Show(bool visible)
+			{
+				if (container.Visible == false && visible == true)
+				{
+					//Refresh(UIState._activeNpc);
+				}
+				container.Visible = visible;
+			}
+
+			public MainWindow(Grid parent)
+			{
+				container = new Grid()
+				{
+					GridColumn = 2,
+					GridRow = 2
+				};
+
+				var newBtn = new TextButton
+				{
+					Text = "New",
+					GridColumn = 1,
+					GridRow = 0,
+					HorizontalAlignment = HorizontalAlignment.Center
+				};
+
+				var loadBtn = new TextButton
+				{
+					Text = "Load",
+					GridColumn = 1,
+					GridRow = 1,
+					HorizontalAlignment = HorizontalAlignment.Center
+				};
+
+				var saveBtn = new TextButton
+				{
+					Text = "Save",
+					GridColumn = 1,
+					GridRow = 2,
+					HorizontalAlignment = HorizontalAlignment.Center
+				};
+
+				var quitBtn = new TextButton
+				{
+					Text = "Quit",
+					GridColumn = 1,
+					GridRow = 3,
+					HorizontalAlignment = HorizontalAlignment.Center
+				};
+
+				container.ShowGridLines = true;
+				container.RowsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.RowsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.RowsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.RowsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.ColumnsProportions.Add(new Grid.Proportion(Grid.ProportionType.Auto));
+				container.HorizontalAlignment = HorizontalAlignment.Center;
+				container.VerticalAlignment = VerticalAlignment.Center;
+
+				container.Widgets.Add(newBtn);
+				container.Widgets.Add(loadBtn);
+				container.Widgets.Add(saveBtn);
+				container.Widgets.Add(quitBtn);
+
+				parent.Widgets.Add(container);
+			}
+		}
+		MainWindow mainWindow;
 
 		public class AbilitiesWindow
 		{
+			Grid grid;
+
+			public bool IsVisible()
+			{
+				return grid.Visible;
+			}
+
+			public void Show(bool visible)
+			{
+				if (grid.Visible == false && visible == true)
+				{
+					//Refresh(UIState._activeNpc);
+				}
+				grid.Visible = visible;
+			}
+
+			public AbilitiesWindow(Grid parent)
+			{
+				grid = new Grid()
+				{
+					GridPositionX = 2,
+					GridPositionY = 2
+				};
+				parent.Widgets.Add(grid);
+			}
 		}
+		AbilitiesWindow abilitiesWindow;
 
 		public class ShopWindow
 		{
@@ -1139,10 +1504,15 @@ namespace SecondDungeon.Source
 			TileWindow tileWindow = new TileWindow(grid, tilePropertiesWindow, _textures);
 			CharacterWindow characterWindow = new CharacterWindow(grid, _level);
 			questEditorWindow = new QuestsEditorWindow(grid, _level);
+			dialogueEditorWindow = new DialogueEditorWindow(grid, _level);
 			inventoryWindow = new InventoryWindow(grid);
 			consoleWindow = new ConsoleWindow(grid);
 			shopWindow = new ShopWindow(grid);
 			dialogueWindow = new DialogueWindow(grid, _level);
+			journalWindow = new JournalWindow(grid);
+			abilitiesWindow = new AbilitiesWindow(grid);
+			worldMapWindow = new WorldMapWindow(grid);
+			mainWindow = new MainWindow(grid);
 
 			tilePropertiesWindow.Show(false);
 			tileWindow.Show(false);
@@ -1154,6 +1524,11 @@ namespace SecondDungeon.Source
 			consoleWindow.Show(false);
 			shopWindow.Show(false);
 			dialogueWindow.Show(false);
+			dialogueEditorWindow.Show(false);
+			abilitiesWindow.Show(false);
+			worldMapWindow.Show(false);
+			journalWindow.Show(false);
+			mainWindow.Show(false);
 
 			var centrePanel = new Panel
 			{
@@ -1191,6 +1566,7 @@ namespace SecondDungeon.Source
 
 			var fileMenu = new MenuItem("0", "File");
 			var playMenu = new MenuItem("1", "Play");
+			var runMenu = new MenuItem("2", "Run Game");
 			var newMapMenu = new MenuItem("3", "New Map");
 			var saveMapMenu = new MenuItem("4", "Save Map");
 			var loadMapMenu = new MenuItem("5", "Load Map");
@@ -1206,6 +1582,13 @@ namespace SecondDungeon.Source
 				tileWindow.Show(false);
 				characterWindow.Show(false);
 				Global.GameState = GameStates.PlayerTurn;
+			};
+
+			runMenu.Selected += (s, a) =>
+			{
+				HideAllWindows();
+				mainWindow.Show(true);
+				Global.GameState = GameStates.MainMenu;
 			};
 
 			tileEditorMenu.Selected += (s, a) =>
@@ -1230,7 +1613,15 @@ namespace SecondDungeon.Source
 
 			questEditorMenu.Selected += (s, a) =>
 			{
+				HideAllWindows();
 				questEditorWindow.Show(true);
+				Global.GameState = GameStates.Editor;
+			};
+
+			dialogueEditorMenu.Selected += (s, a) =>
+			{
+				HideAllWindows();
+				dialogueEditorWindow.Show(true);
 				Global.GameState = GameStates.Editor;
 			};
 
@@ -1250,6 +1641,8 @@ namespace SecondDungeon.Source
 			};
 
 			fileMenu.Items.Add(playMenu);
+			fileMenu.Items.Add(new MenuSeparator());
+			fileMenu.Items.Add(runMenu);
 			fileMenu.Items.Add(new MenuSeparator());
 			fileMenu.Items.Add(newMapMenu);
 			fileMenu.Items.Add(saveMapMenu);
@@ -1282,6 +1675,24 @@ namespace SecondDungeon.Source
 			}
 		}
 
+		public void HideAllWindows()
+		{
+			//tilePropertiesWindow.Show(false);
+			//tileWindow.Show(false);
+			//characterWindow.Show(false);
+			questEditorWindow.Show(false);
+			inventoryWindow.Hide();
+			statsWindow.Show(false);
+			consoleWindow.Show(false);
+			shopWindow.Show(false);
+			dialogueWindow.Show(false);
+			dialogueEditorWindow.Show(false);
+			abilitiesWindow.Show(false);
+			worldMapWindow.Show(false);
+			journalWindow.Show(false);
+			mainWindow.Show(false);
+		}
+
 		public void DrawStatsWindow(bool draw)
 		{
 			statsWindow.Show(draw);
@@ -1297,6 +1708,26 @@ namespace SecondDungeon.Source
 			dialogueWindow.Show(draw);
 		}
 
+		public void DrawMainWindow(bool draw)
+		{
+			mainWindow.Show(draw);
+		}
+
+		public void DrawJournalWindow(bool draw)
+		{
+			journalWindow.Show(draw);
+		}
+
+		public void DrawAbilitiesWindow(bool draw)
+		{
+			abilitiesWindow.Show(draw);
+		}
+
+		public void DrawMapWindow(bool draw)
+		{
+			worldMapWindow.Show(draw);
+		}
+
 		public bool IsInventoryWindowVisible()
 		{
 			return inventoryWindow.IsVisible();
@@ -1310,6 +1741,21 @@ namespace SecondDungeon.Source
 		public bool IsShopWindowVisible()
 		{
 			return shopWindow.IsVisible();
+		}
+
+		public bool IsMainWindowVisible()
+		{
+			return mainWindow.IsVisible();
+		}
+
+		public bool IsJournalWindowVisible()
+		{
+			return journalWindow.IsVisible();
+		}
+
+		public bool IsAbilitiesWindowVisible()
+		{
+			return abilitiesWindow.IsVisible();
 		}
 
 		public void DrawConsoleWindow(bool draw)
@@ -1341,7 +1787,7 @@ namespace SecondDungeon.Source
 				spriteBatch.Draw(_whiteTex, new Microsoft.Xna.Framework.Rectangle(1373, 580 + ySelect, 2, 20), Color.Yellow);
 				spriteBatch.End();
 			}
-			else if (shopWindow.IsVisible() || inventoryWindow.IsVisible() || questEditorWindow.IsVisible())
+			else if (shopWindow.IsVisible() || inventoryWindow.IsVisible() || questEditorWindow.IsVisible() || dialogueEditorWindow.IsVisible())
 			{
 				spriteBatch.Begin();
 				spriteBatch.Draw(_whiteTex, new Microsoft.Xna.Framework.Rectangle(480 - 1, 270 - 1, 960 + 1, 540 + 1), Color.Black);
@@ -1352,10 +1798,6 @@ namespace SecondDungeon.Source
 			_host.Render();
 		}
 
-		public void DrawTileSetup(SpriteBatch spriteBatch)
-		{
-
-		}
 
 		public void HandleInput(InputState inputState)
 		{
@@ -1383,12 +1825,13 @@ namespace SecondDungeon.Source
 
 		public void Draw(SpriteBatch spriteBatch)
 		{
-			//ui.DrawTilesEditor(spriteBatch);
 			DrawUI(spriteBatch);
 			if (Global.GameState == GameStates.Editor)
 			{
-				if (!questEditorWindow.IsVisible())
+				if (!questEditorWindow.IsVisible() && !dialogueEditorWindow.IsVisible())
+				{
 					DrawTilesEditor(spriteBatch);
+				}
 			}
 		}
 	}

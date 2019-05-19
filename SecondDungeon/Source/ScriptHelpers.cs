@@ -13,7 +13,8 @@ namespace SecondDungeon.Source
 		GivePlayerGold,
 		StartDialogueTree, // with ID reference
 		ShowMessage, // with string message
-		AssignDialogueTree
+		AssignDialogueTree,
+		GiveQuest, // string quest name
 	}
 
 	public class ScriptObject

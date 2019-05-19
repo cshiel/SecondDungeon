@@ -12,6 +12,7 @@ namespace SecondDungeon.Source
 		public List<DialogueNode> Children { get; set; }
 		public string Text { get; set;  }
 		public int Id { get; set; }
+		public ScriptObject Script { get; set; }
 
 		public DialogueNode(string text, int id, DialogueNode parent)
 		{

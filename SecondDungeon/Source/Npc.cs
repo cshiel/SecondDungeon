@@ -13,16 +13,21 @@ namespace SecondDungeon.Source
 	{
 		private readonly PathToPlayer _path;
 		private readonly IMap _map;
+		private readonly Level _level;
 		private bool _isAwareOfPlayer;
+
+		public bool Alive { get; set; }
 
 		//private DialogueTree _dialogueTree;
 		//public DialogueTree DialogueTree { get => _dialogueTree; set => _dialogueTree = value; }
 
 		public int DialogueRoot { get; set; }
 
-		public Npc(IMap map, PathToPlayer path)
+		public Npc(IMap map, Level level, PathToPlayer path)
 		{
+			Alive = true;
 			_map = map;
+			_level = level;
 			_path = path;
 			_isAwareOfPlayer = false;
 			//_dialogueTree = new DialogueTree();
@@ -38,6 +43,12 @@ namespace SecondDungeon.Source
 
 		public void Update()
 		{
+			if (Alive == false)
+			{
+				_level.RemoveNpc(this);
+				return;
+			}
+
 			if (!_isAwareOfPlayer)
 			{
 				// When the enemy is not aware of the player
@@ -62,12 +73,14 @@ namespace SecondDungeon.Source
 						// Make an attack against the player
 						Global.CombatManager.Attack(this,
 						  Global.CombatManager.FigureAt(_path.FirstCell.X, _path.FirstCell.Y));
+						SoundPlayer.PlaySound(Sound.MeleeAttack);
 					}
 					else
 					{
 						// Since the player wasn't in the cell, just move into as normal
-						X = _path.FirstCell.X;
-						Y = _path.FirstCell.Y;
+						_level.MoveNpc(this, X, Y, _path.FirstCell.X, _path.FirstCell.Y);
+						//X = _path.FirstCell.X;
+						//Y = _path.FirstCell.Y;
 					}
 				}
 			}
