@@ -30,6 +30,7 @@ namespace SecondDungeon.Source
 		public static readonly IRandom Random = new DotNetRandom();
 		public static GameStates GameState { get; set; }
 		public static Player Player;
+		public static bool StartedGame { get; set; }
 	}
 
 	public class ScreenLayout

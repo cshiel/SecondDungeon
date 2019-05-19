@@ -12,6 +12,7 @@ namespace SecondDungeon.Source
 	{
 		public int _tileType;
 		public float _layerDepth;
+		public float _scale = 1.0f;
 		public bool _walkable;
 		public bool _useOnInteract;
 		public bool _isDoor;
@@ -21,6 +22,11 @@ namespace SecondDungeon.Source
 		public string _description;
 		public ScriptDescription _script;
 		public object _parameter;
+		public int _goldValue;
+
+		//public bool _canWield;
+		//public int _damage;
+		//public int _protection;
 	}
 
 	public class TileHelper
@@ -42,7 +48,7 @@ namespace SecondDungeon.Source
 		private static Dictionary<int, TileInfo> _tileInfo = new Dictionary<int, TileInfo>();
 
 		public static void AddTile(int type, Texture2D texture, float layerDepth, bool walkable, bool destructs,
-			bool isObject, bool isDoor, bool isItem, string name, ScriptDescription script, object parameter)
+			bool isObject, bool isDoor, bool isItem, string name, ScriptDescription script, object parameter, int goldValue)
 		{
 			TileInfo tileInfo = new TileInfo();
 			tileInfo._tileType = type;
@@ -56,16 +62,18 @@ namespace SecondDungeon.Source
 			tileInfo._name = name;
 			tileInfo._script = script;
 			tileInfo._parameter = parameter;
+			tileInfo._goldValue = goldValue;
 			_tileInfo[type] = tileInfo;
 		}
 
-		public static void EditTile(int type, Texture2D texture, float layerDepth, bool walkable, bool destructs,
-			bool isObject, bool isDoor, bool isItem, string name, ScriptDescription script, object parameter)
+		public static void EditTile(int type, Texture2D texture, float scale, float layerDepth, bool walkable, bool destructs,
+			bool isObject, bool isDoor, bool isItem, string name, string description, ScriptDescription script, object parameter, int goldValue)
 		{
 			if (_tileInfo.ContainsKey(type))
 			{
 				_tileInfo[type]._tileType = type;
 				_textures[type] = texture;
+				_tileInfo[type]._scale = scale;
 				_tileInfo[type]._layerDepth = layerDepth;
 				_tileInfo[type]._walkable = walkable;
 				_tileInfo[type]._useOnInteract = destructs;
@@ -73,8 +81,10 @@ namespace SecondDungeon.Source
 				_tileInfo[type]._isDoor = isDoor;
 				_tileInfo[type]._isPickupItem = isItem;
 				_tileInfo[type]._name = name;
+				_tileInfo[type]._description = description;
 				_tileInfo[type]._script = script;
 				_tileInfo[type]._parameter = parameter;
+				_tileInfo[type]._goldValue = goldValue;
 			}
 		}
 

@@ -12,6 +12,7 @@ namespace SecondDungeon.Source
 		PlayerTalkedToNpc,
 		PlayerHasKilledNpc,
 		PlayerHasKilledMultipleNpc,
+		PlayerHasCompletedQuest
 	}
 
 	public class QuestTask

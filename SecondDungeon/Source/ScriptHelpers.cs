@@ -27,6 +27,11 @@ namespace SecondDungeon.Source
 	{
 		public static ScriptDescription Scripts;
 
+		public static void Execute(string script)
+		{
+			//System.Runtime.Exe
+		}
+
 		public static void Execute(ScriptObject script)
 		{
 			Execute(script.Script, script.Value);

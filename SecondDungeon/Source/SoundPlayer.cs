@@ -13,11 +13,13 @@ namespace SecondDungeon.Source
 	{
 		OpenDoor,
 		DoorLocked,
+		DoorShut,
 		PickupCoins,
 		MagicAttack,
 		MeleeAttack,
 		Walk,
 		InterfaceClick,
+		InterfaceHover,
 	}
 
 	public class SoundPlayer
@@ -31,12 +33,19 @@ namespace SecondDungeon.Source
 			sounds.Add(Sound.PickupCoins, game.Content.Load<SoundEffect>("RPG Sound Pack\\Inventory\\coin"));
 			sounds.Add(Sound.MagicAttack, game.Content.Load<SoundEffect>("RPG Sound Pack\\battle\\magic1"));
 			sounds.Add(Sound.MeleeAttack, game.Content.Load<SoundEffect>("RPG Sound Pack\\battle\\swing2"));
-			sounds.Add(Sound.InterfaceClick, game.Content.Load<SoundEffect>("RPG Sound Pack\\interface\\interface6"));
+			sounds.Add(Sound.InterfaceClick, game.Content.Load<SoundEffect>("RPG Sound Pack\\interface\\interface5"));
+			sounds.Add(Sound.InterfaceHover, game.Content.Load<SoundEffect>("RPG Sound Pack\\interface\\interface6"));
+			sounds.Add(Sound.DoorShut, game.Content.Load<SoundEffect>("RPG Sound Pack\\world\\door"));
 		}
 		public static void PlaySound(Sound sound)
 		{
 			var effect = sounds[sound];
 			effect.Play();
+		}
+		public static void PlaySound(Sound sound, float volume)
+		{
+			var effect = sounds[sound];
+			effect.Play(volume, 0, 0);
 		}
 	}
 }

@@ -9,9 +9,25 @@ namespace SecondDungeon.Source
 	[Serializable]
 	public class PickupItem
 	{
+		public enum PickupType
+		{
+			Consumable,
+			Wearable,
+
+		}
+
 		public PickupItem()
 		{
 			SpriteType = 200;
+		}
+
+		public PickupItem(TileInfo info)
+		{
+			Name = info._name;
+			Description = info._description;
+			Script = info._script;
+			UseOnPickup = info._useOnInteract;
+			SpriteType = info._tileType;
 		}
 
 		public void Pickup()
@@ -33,7 +49,7 @@ namespace SecondDungeon.Source
 
 		public bool UseOnPickup { get; set; }
 		public string Name { get; set; }
-		public string Description { get; set; } // todo
+		public string Description { get; set; }
 		public ScriptDescription Script;
 		public object Parameter;
 		public int X { get; set; }

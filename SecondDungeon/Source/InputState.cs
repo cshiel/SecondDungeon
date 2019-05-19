@@ -74,13 +74,13 @@ namespace SecondDungeon.Source
 		public bool IsZoomOut(PlayerIndex? controllingPlayer)
 		{
 			PlayerIndex playerIndex;
-			return IsNewKeyPress(Keys.OemPeriod, controllingPlayer, out playerIndex);
+			return IsNewKeyPress(Keys.OemMinus, controllingPlayer, out playerIndex);
 		}
 
 		public bool IsZoomIn(PlayerIndex? controllingPlayer)
 		{
 			PlayerIndex playerIndex;
-			return IsNewKeyPress(Keys.OemComma, controllingPlayer, out playerIndex);
+			return IsNewKeyPress(Keys.OemPlus, controllingPlayer, out playerIndex);
 		}
 
 		/// <summary>

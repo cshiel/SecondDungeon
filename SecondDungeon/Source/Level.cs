@@ -140,6 +140,11 @@ namespace SecondDungeon.Source
 			return _objects[x, y];
 		}
 
+		public void RemoveObject(int x, int y)
+		{
+			_objects[x, y] = null;
+		}
+
 		public IEnumerable<Door> GetAllDoors()
 		{
 			for (int y = 0; y < Global.MapHeight; y++)

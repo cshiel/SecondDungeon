@@ -20,10 +20,16 @@ namespace SecondDungeon.Source
 		private int _damage;
 		private float _speed;
 		private int _range;
+		private float _targetX;
+		private float _targetY;
 
-		public MagicAttack(Figure caster, int textureID, int damage, int range = 6, float speed = 0.25f)
+		public MagicAttack(Figure caster, int textureID, int damage, int tx, int ty, int range = 6, float speed = 0.25f)
 		{
 			_caster = caster;
+			//_xi = 1;
+			//_yi = 0;// 0;
+			_targetX = caster.X;
+			_targetY = caster.Y;
 			TileHelper.GetTileTexture(textureID, ref _fire);
 			_damage = damage;
 			_speed = speed;
@@ -41,12 +47,18 @@ namespace SecondDungeon.Source
 			int y = figure.Y;
 			bool casterIsPlayer = (x == Global.Player.X && y == Global.Player.Y);
 			//var cells = map.GetCellsInCircle(x, y, (int)_radius);
-			var cells = map.GetBorderCellsInCircle(x, y, (int)_radius);
-			foreach (var cell in cells)
+			//var cells = map.GetBorderCellsInCircle(x, y, (int)_radius);
+			//var cells = map.GetCellsAlongLine(_caster.X, _caster.Y, _targetX, _targetY);
+			
+			_targetX += _speed;
+			
+			var cell = map.GetCell((int)_targetX, (int)_targetY);
+
+			//foreach (var cell in cells)
 			{
 				if (cell.IsWalkable)
 				{
-					spriteBatch.Draw(_fire, new Vector2(cell.X * Global.SpriteWidth, cell.Y * Global.SpriteHeight), null, null, null, 0.0f, Vector2.One, Color.White, SpriteEffects.None, LayerDepth.Figures);
+					spriteBatch.Draw(_fire, new Vector2((cell.X * Global.SpriteWidth)+ Global.SpriteWidth/2, (cell.Y * Global.SpriteHeight)+ Global.SpriteHeight/2), null, null, null, 0.0f, Vector2.One * 0.5f, Color.White, SpriteEffects.None, LayerDepth.Figures);
 					// if caster is player
 					if (casterIsPlayer)
 					{

@@ -41,6 +41,8 @@ namespace SecondDungeon.Source
 		private List<PickupItem> _inventory = new List<PickupItem>();
 		public List<PickupItem> Inventory { get => _inventory; set => _inventory = value; }
 
+		public List<PickupItem> Equipped { get; set; }
+
 		public Player()
 		{
 			Global.Player = this;
@@ -264,7 +266,9 @@ namespace SecondDungeon.Source
 			}
 			else if (inputState.IsSpace(PlayerIndex.One))
 			{
-				_fireAttack = new MagicAttack(this, 4412, 2);
+				int tx = this.X + 6;
+				int ty = this.Y;
+				_fireAttack = new MagicAttack(this, 4412, 2, tx, ty);
 				SoundPlayer.PlaySound(Sound.MagicAttack);
 				return true;
 			}

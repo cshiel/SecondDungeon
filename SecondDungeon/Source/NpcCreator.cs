@@ -56,15 +56,15 @@ namespace SecondDungeon.Source
 					Sprite = UIState._selectedTexture,
 					Damage = Dice.Parse("d3"),
 				};
-				
+
 				npc.Info = info;
 
 				if (npc.Info.IsMerchant)
 				{
-					//npc.Info.Inventory = new List<int>();
-					//npc.Info.Inventory.Add(2569);
-					//npc.Info.Inventory.Add(2569);
-					//npc.Info.Inventory.Add(2569);
+					npc.Info.Inventory = new List<int>();
+					npc.Info.Inventory.Add(2569);
+					npc.Info.Inventory.Add(2569);
+					npc.Info.Inventory.Add(2569);
 				}
 				//level.AddNpc(npc);
 			}
