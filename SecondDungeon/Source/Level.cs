@@ -77,6 +77,7 @@ namespace SecondDungeon.Source
 			_items = new PickupItem[Global.MapWidth, Global.MapHeight];
 			_objects = new LevelObject[Global.MapWidth, Global.MapHeight];
 			_npcs = new Npc[Global.MapWidth, Global.MapHeight];
+			_map = new Map(Global.MapWidth, Global.MapHeight);
 		}
 
 		public Level()
@@ -385,6 +386,9 @@ namespace SecondDungeon.Source
 			b.Serialize(s, _doors);
 			b.Serialize(s, _items);
 			b.Serialize(s, _objects);
+			b.Serialize(s, DialogueHelper.DialogueItems);
+			b.Serialize(s, DialogueHelper.Dialogues);
+			b.Serialize(s, DialogueHelper.DialogueLookup);
 			var npcs = GetNpcs();
 			List<FigureInfo> npcInfos = new List<FigureInfo>();
 			foreach (var npc in npcs)
@@ -399,13 +403,18 @@ namespace SecondDungeon.Source
 
 		public void Load()
 		{
+			//Global.CombatManager = new CombatManager(Global.Player, GetNpcs());
+			//return;
 			Stream s = File.Open("level.dat", FileMode.Open);
 			BinaryFormatter b = new BinaryFormatter();
 			var cellInfos = (List<CellInfo>)b.Deserialize(s);
 			_doors = (Door[,])b.Deserialize(s);
 			_items = (PickupItem[,])b.Deserialize(s);
 			_objects = (LevelObject[,])b.Deserialize(s);
-
+			DialogueHelper.DialogueItems = (Dictionary<int, DialogueNode>)b.Deserialize(s);
+			//DialogueHelper.DialogueItems.Clear();
+			DialogueHelper.Dialogues = (List<string>)b.Deserialize(s);
+			DialogueHelper.DialogueLookup = (Dictionary<string, int>)(b.Deserialize(s));
 			_map = new Map(Global.MapWidth, Global.MapHeight);
 
 			foreach (var cellInfo in cellInfos)
@@ -420,6 +429,7 @@ namespace SecondDungeon.Source
 				var npc = NpcCreator.CreateNpc(info, this, info.X, info.Y);
 				Texture2D tex = null;
 				TileHelper.GetTileTexture(npc.Info.TextureID, ref tex);
+				npc.DialogueRoot = info.DialogueRoot;
 				npc.Sprite = tex;
 				AddNpc(npc);
 			}

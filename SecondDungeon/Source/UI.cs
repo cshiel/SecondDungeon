@@ -24,14 +24,13 @@ namespace SecondDungeon.Source
 		public static TileInfo _selected;
 		public static Texture2D _selectedTexture;
 		public static PaintMode _paintMode = PaintMode.Tiles;
+		public static bool _floodFill = false;
 		public static bool _showGridLines = false;
 		public static int _mouseX;
 		public static int _mouseY;
 		public static int _beginIndex = 0;
-
 		public static FigureInfo _npcTemplate;
 		public static Npc _activeNpc;
-
 		private static UI _ui;
 		public static void AddUI(UI ui) { _ui = ui; }
 		public static UI GetUI() { return _ui; }
@@ -47,7 +46,6 @@ namespace SecondDungeon.Source
 		private Texture2D _whiteTex;
 		private Texture2D _screenTex;
 		private bool _painting = false;
-
 		private HorizontalMenu mainMenu;
 		private TextField _commandLine;
 		private Button _runCmdLine;
@@ -78,6 +76,7 @@ namespace SecondDungeon.Source
 			public RadioButton placeModeRadio;
 			public RadioButton editModeRadio;
 			public RadioButton removeModeRadio;
+			public RadioButton floodFillRadio;
 			public TextField layerDepthTF;
 			public TextField scaleTF;
 			public CheckBox walkableCB;
@@ -240,6 +239,7 @@ namespace SecondDungeon.Source
 				placeModeRadio.Click += (a, b) =>
 				{
 					UIState._paintMode = PaintMode.Tiles;
+					UIState._floodFill = false;
 				};
 
 				editModeRadio = new RadioButton
@@ -255,17 +255,33 @@ namespace SecondDungeon.Source
 				{
 					Text = "Remove Objects",
 					GridRow = 13,
-					GridColumn = 1
+					GridColumn = 0
 				};
 				removeModeRadio.Click += (a, b) =>
 				{
 					UIState._paintMode = PaintMode.DeleteObject;
+					UIState._floodFill = false;
 				};
+
+				floodFillRadio = new RadioButton
+				{
+					Text = "Flood fill",
+					HorizontalAlignment = HorizontalAlignment.Right,
+					GridRow = 13,
+					GridColumn = 1
+				};
+				floodFillRadio.Click += (a, b) =>
+				{
+					UIState._paintMode = PaintMode.Tiles;
+					UIState._floodFill = true;
+				};
+				
 
 				newTileGrid.Widgets.Add(saveBtn);
 				newTileGrid.Widgets.Add(placeModeRadio);
 				newTileGrid.Widgets.Add(editModeRadio);
 				newTileGrid.Widgets.Add(removeModeRadio);
+				newTileGrid.Widgets.Add(floodFillRadio);
 				newTileGrid.Widgets.Add(layerDepthTF);
 				newTileGrid.Widgets.Add(scaleTF);
 				newTileGrid.Widgets.Add(walkableCB);
@@ -281,7 +297,8 @@ namespace SecondDungeon.Source
 				saveBtn.Click += (s, a) =>
 				{
 					float scale = float.Parse(scaleTF.Text);
-					int goldValue = int.Parse(goldValueTF.Text);
+					//int goldValue = int.Parse(goldValueTF.Text);
+					int goldValue = 1;
 					TileHelper.EditTile(UIState._selected._tileType, UIState._selectedTexture, scale, LayerDepth.Cells,
 						walkableCB.IsPressed, destructsCB.IsPressed, isObjCB.IsPressed,
 						isDoorCB.IsPressed, isItemCB.IsPressed, nameTF.Text, descriptionTF.Text,
@@ -392,10 +409,21 @@ namespace SecondDungeon.Source
 		{
 			Grid container;
 			private List<TextField> fields;
+			ComboBox availableDialogues;
 
 			public void Show(bool visible)
 			{
 				container.Visible = visible;
+
+				if (visible)
+				{
+					availableDialogues.Items.Clear();
+
+					foreach (var item in DialogueHelper.Dialogues)
+					{
+						availableDialogues.Items.Add(new ListItem(item));
+					}
+				}
 			}
 
 			private void AddRow(Grid grid, string label, string value, int index)
@@ -441,17 +469,24 @@ namespace SecondDungeon.Source
 				AddRow(container, "Health", "70", 4);
 				AddRow(container, "Gold", "5", 5);
 
+				availableDialogues = new ComboBox
+				{
+					GridColumn = 1,
+					GridRow = 6
+				};
+				container.Widgets.Add(availableDialogues);
+
 				var isMerchant = new CheckBox()
 				{
 					Text = "Is Merchant",
 					GridColumn = 0,
-					GridRow = 6
+					GridRow = 7
 				};
 
 				var merchantTypeCB = new ComboBox()
 				{
 					GridColumn = 1,
-					GridRow = 6
+					GridRow = 7
 				};
 				merchantTypeCB.Items.Add(new ListItem("Weapons"));
 				merchantTypeCB.Items.Add(new ListItem("Armour"));
@@ -469,7 +504,7 @@ namespace SecondDungeon.Source
 				{
 					Text = "Is Hostile",
 					GridColumn = 0,
-					GridRow = 7
+					GridRow = 8
 				};
 				container.Widgets.Add(isEnemy);
 				container.Widgets.Add(merchantTypeCB);
@@ -479,19 +514,19 @@ namespace SecondDungeon.Source
 				{
 					Text = "Next",
 					GridColumn = 0,
-					GridRow = 8
+					GridRow = 9
 				};
 				var prevBtn = new Button()
 				{
 					Text = "Prev",
 					GridColumn = 1,
-					GridRow = 8
+					GridRow = 9
 				};
 				var saveBtn = new Button()
 				{
 					Text = "Save Type",
 					GridColumn = 1,
-					GridRow = 7
+					GridRow = 8
 				};
 				container.Widgets.Add(nextBtn);
 				container.Widgets.Add(prevBtn);
@@ -508,6 +543,7 @@ namespace SecondDungeon.Source
 					info.RangedAttack = int.Parse(fields[3].Text);
 					info.Health = int.Parse(fields[4].Text);
 					info.Gold = int.Parse(fields[5].Text);
+					info.DialogueRoot = availableDialogues.SelectedItem.Text;
 					info.TextureID = UIState._selected._tileType;
 					NpcCreator.AddNpcType(info);
 					UIState._npcTemplate = info;
@@ -682,6 +718,8 @@ namespace SecondDungeon.Source
 		public class DialogueEditorWindow
 		{
 			Grid container;
+			ComboBox listBox;
+			string dialogueRoot;
 
 			public bool IsVisible()
 			{
@@ -691,6 +729,11 @@ namespace SecondDungeon.Source
 			public void Show(bool visible)
 			{
 				container.Visible = visible;
+
+				if (visible)
+				{
+
+				}
 			}
 
 			public DialogueEditorWindow(Grid parent, Level level)
@@ -716,15 +759,10 @@ namespace SecondDungeon.Source
 					GridRow = 0
 				};
 
-				var listBox = new ComboBox
+				listBox = new ComboBox
 				{
 					GridRow = 1
 				};
-
-				//listBox.Items.Add(new ListItem("Shopkeeper"));
-				//listBox.Items.Add(new ListItem("Villager1"));
-				//listBox.Items.Add(new ListItem("Villager2"));
-				//listBox.Items.Add(new ListItem("Villager3"));
 
 				var nameTxt = new TextField
 				{
@@ -747,14 +785,6 @@ namespace SecondDungeon.Source
 					Text = "Delete Dialogue"
 				};
 				container.Widgets.Add(delBtn);
-
-				var saveBtn = new Button
-				{
-					GridRow = 2,
-					GridColumn = 3,
-					Text = "Save Dialogue"
-				};
-				container.Widgets.Add(saveBtn);
 
 				var rootBtn = new Button
 				{
@@ -822,6 +852,21 @@ namespace SecondDungeon.Source
 				};
 				sp.Content = speechTxt;
 				container.Widgets.Add(sp);
+
+				var saveBtn = new Button
+				{
+					GridRow = 2,
+					GridColumn = 3,
+					Text = "Save Dialogue"
+				};
+				saveBtn.Click += (a, b) =>
+				{
+					DialogueHelper.AddRoot(nameTxt.Text, txtField.Text);
+					var id = DialogueHelper.GetDialogueId(nameTxt.Text);
+					DialogueHelper.AddLeaf(txtField.Text, id);
+					level.Save();
+				};
+				container.Widgets.Add(saveBtn);
 
 				int row = 8;
 				respBtn.Click += (a, b) =>
@@ -1246,7 +1291,8 @@ namespace SecondDungeon.Source
 			public int YSelect = 0;
 			int YMax = 2;
 			DialogueNode startNode;
-			int rootId = 0;
+			int id = 0;
+			string rootName = string.Empty;
 
 			public bool IsVisible()
 			{
@@ -1271,12 +1317,13 @@ namespace SecondDungeon.Source
 				{
 					if (startNode.Children[YSelect].Children.Count > 0)
 					{
-						UIState._activeNpc.DialogueRoot = startNode.Children[YSelect].Children[0].Id;
-						Refresh(UIState._activeNpc, UIState._activeNpc.DialogueRoot);
+						//UIState._activeNpc.DialogueRoot = startNode.Children[YSelect].Children[0].Text;
+						id = startNode.Children[YSelect].Children[0].Id;
+						Refresh(UIState._activeNpc, id);
 					}
 					else
 					{
-						UIState._activeNpc.DialogueRoot = rootId;
+						UIState._activeNpc.DialogueRoot = rootName;
 						Show(false);
 					}
 				}
@@ -1286,8 +1333,9 @@ namespace SecondDungeon.Source
 			{
 				if (container.Visible == false && visible == true)
 				{
-					rootId = UIState._activeNpc.DialogueRoot;
-					Refresh(UIState._activeNpc, UIState._activeNpc.DialogueRoot);
+					rootName = UIState._activeNpc.DialogueRoot;
+					id = DialogueHelper.GetDialogueId(rootName);
+					Refresh(UIState._activeNpc, id);
 				}
 				container.Visible = visible;
 
@@ -1305,9 +1353,9 @@ namespace SecondDungeon.Source
 				}
 			}
 
-			public void Refresh(Npc npc, int root)
+			public void Refresh(Npc npc, int id)
 			{
-				var rootNode = DialogueHelper.GetDialogue(root);
+				var rootNode = DialogueHelper.GetDialogue(id);
 				startNode = rootNode;
 				userText.Text = rootNode.Text;
 
@@ -1593,18 +1641,40 @@ namespace SecondDungeon.Source
 				}
 				else if (UIState._selected._walkable)
 				{
-					_level.AddFloorAt(wx, wy, UIState._selected._tileType);
+					if (UIState._floodFill)
+					{
+						for (int y = 0; y < Global.MapHeight; y++)
+						{
+							for (int x = 0; x < Global.MapWidth; x++)
+							{
+								_level.AddFloorAt(x, y, UIState._selected._tileType);
+							}
+						}
+					}
+					else
+					{
+						_level.AddFloorAt(wx, wy, UIState._selected._tileType);
+					}
 				}
 				else if (!UIState._selected._walkable)
 				{
-					_level.AddWallAt(wx, wy, UIState._selected._tileType);
+					if (UIState._floodFill)
+					{
+					}
+					else
+					{
+						_level.AddWallAt(wx, wy, UIState._selected._tileType);
+					}
 				}
 			}
 			else if (UIState._paintMode == PaintMode.NPCs)
 			{
-				var level = LevelManager.GetCurrentLevel();
-				var npc = NpcCreator.CreateNpc(UIState._npcTemplate, level, wx, wy);
-				level.AddNpc(npc);
+				if (UIState._npcTemplate != null)
+				{
+					var level = LevelManager.GetCurrentLevel();
+					var npc = NpcCreator.CreateNpc(UIState._npcTemplate, level, wx, wy);
+					level.AddNpc(npc);
+				}
 				_painting = false;
 			}
 			else if (UIState._paintMode == PaintMode.DeleteObject)

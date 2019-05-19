@@ -26,6 +26,7 @@ namespace SecondDungeon.Source
 		public int X { get; set; }
 		public int Y { get; set; }
 		public List<int> Inventory { get; set; }
+		public string DialogueRoot { get; set; }
 	}
 
 	public class NpcCreator

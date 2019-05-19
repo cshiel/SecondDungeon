@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SecondDungeon.Source
 {
+	[Serializable]
 	public enum ScriptDescription
 	{
 		None,
@@ -17,6 +18,7 @@ namespace SecondDungeon.Source
 		GiveQuest, // string quest name
 	}
 
+	[Serializable]
 	public class ScriptObject
 	{
 		public ScriptDescription Script { get; set; }

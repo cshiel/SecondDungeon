@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SecondDungeon.Source
 {
+	[Serializable]
 	public class DialogueNode
 	{
 		public DialogueNode Parent { get; set; }
@@ -27,13 +28,24 @@ namespace SecondDungeon.Source
 	{
 		private static int _id = 0;
 		public static Dictionary<int, DialogueNode> DialogueItems = new Dictionary<int, DialogueNode>();
+		public static List<string> Dialogues = new List<string>();
+		public static Dictionary<string, int> DialogueLookup = new Dictionary<string, int>();
 
 		public static int NextID { get { return _id; } }
-		public static int AddRoot(string text)
+		public static int AddRoot(string name, string text)
 		{
 			_id++;
+			Dialogues.Add(name);
+			DialogueLookup[name] = _id;
 			DialogueNode item = new DialogueNode(text, _id, null);
-			DialogueHelper.DialogueItems.Add(_id, item);
+			if (DialogueHelper.DialogueItems.ContainsKey(_id))
+			{
+			}
+			else
+			{
+				DialogueHelper.DialogueItems.Add(_id, item);
+				Dialogues.Add(name);
+			}
 			return _id;
 		}
 
@@ -50,6 +62,12 @@ namespace SecondDungeon.Source
 		public static DialogueNode GetDialogue(int id)
 		{
 			return DialogueItems[id];
+		}
+
+		public static int GetDialogueId(string rootName)
+		{
+			int id = DialogueLookup[rootName];
+			return id;
 		}
 
 		public static List<DialogueNode> GetLeaves(int id)

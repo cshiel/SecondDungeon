@@ -21,7 +21,7 @@ namespace SecondDungeon.Source
 		//private DialogueTree _dialogueTree;
 		//public DialogueTree DialogueTree { get => _dialogueTree; set => _dialogueTree = value; }
 
-		public int DialogueRoot { get; set; }
+		public string DialogueRoot { get; set; }
 
 		public Npc(IMap map, Level level, PathToPlayer path)
 		{
